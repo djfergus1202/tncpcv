@@ -1,0 +1,20 @@
+# NextGen CellDynamics - Python Requirements (Render-compatible)
+# ===================================================================
+# CRITICAL: Use with Python 3.11 (see runtime.txt)
+
+# Core Framework
+Flask==3.0.3
+flask-cors==4.0.1
+
+# Scientific Computing - MUST use pre-built wheels (no compilation)
+# These versions are guaranteed to have wheels for Python 3.11
+numpy==1.26.4
+scipy==1.11.3
+
+# Production server for Render deployment
+gunicorn==21.2.0
+
+# Optional: For enhanced features (uncomment if needed)
+# pandas==2.2.0          # Data analysis and export
+# matplotlib==3.8.3      # Additional plotting
+# scikit-learn==1.4.1    # Enhanced ML models

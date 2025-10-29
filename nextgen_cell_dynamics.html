@@ -1,0 +1,1161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NextGen CellDynamics • Advanced Computational Biology Platform</title>
+<meta name="theme-color" content="#0f172a">
+
+<!-- Core Libraries -->
+<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone@7/babel.min.js"></script>
+<script src="https://unpkg.com/recharts@2/umd/Recharts.min.js"></script>
+<script src="https://cdn.plot.ly/plotly-2.26.0.min.js"></script>
+<script src="https://unpkg.com/three@0.150.0/build/three.min.js"></script>
+
+<style>
+:root {
+  --bg: #0a0e1a;
+  --panel: #0f1419;
+  --card: #1a1f2e;
+  --text: #e5e7eb;
+  --muted: #9ca3af;
+  --accent: #3b82f6;
+  --accent-bright: #60a5fa;
+  --line: #1e293b;
+  --green: #10b981;
+  --red: #ef4444;
+  --yellow: #f59e0b;
+  --purple: #8b5cf6;
+  --cyan: #06b6d4;
+  --gradient-1: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  --gradient-2: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  --gradient-3: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+  line-height: 1.6;
+  overflow-x: hidden;
+}
+
+/* Header */
+.app-header {
+  background: var(--panel);
+  border-bottom: 2px solid var(--line);
+  padding: 1.5rem 2rem;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  backdrop-filter: blur(10px);
+}
+
+.header-content {
+  max-width: 1800px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.brand-icon {
+  width: 40px;
+  height: 40px;
+  background: var(--gradient-3);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+}
+
+.brand-text h1 {
+  font-size: 1.5rem;
+  font-weight: 800;
+  background: var(--gradient-3);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.brand-text p {
+  font-size: 0.75rem;
+  color: var(--muted);
+}
+
+.status-bar {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+
+.status-indicator {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: var(--card);
+  border-radius: 6px;
+  font-size: 0.875rem;
+}
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  animation: pulse 2s infinite;
+}
+
+.status-dot.active { background: var(--green); }
+.status-dot.running { background: var(--yellow); }
+.status-dot.error { background: var(--red); }
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+/* Main Container */
+.app-container {
+  max-width: 1800px;
+  margin: 2rem auto;
+  padding: 0 2rem;
+}
+
+/* Card Components */
+.card {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  overflow: hidden;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 16px rgba(0,0,0,0.3);
+}
+
+.card-header {
+  padding: 1.5rem;
+  border-bottom: 1px solid var(--line);
+  background: rgba(59, 130, 246, 0.05);
+}
+
+.card-title {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: var(--accent-bright);
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.card-description {
+  font-size: 0.875rem;
+  color: var(--muted);
+  margin-top: 0.25rem;
+}
+
+.card-content {
+  padding: 1.5rem;
+}
+
+/* Grid Layouts */
+.grid { display: grid; }
+.grid-cols-2 { grid-template-columns: repeat(2, 1fr); }
+.grid-cols-3 { grid-template-columns: repeat(3, 1fr); }
+.grid-cols-4 { grid-template-columns: repeat(4, 1fr); }
+.gap-4 { gap: 1rem; }
+.gap-6 { gap: 1.5rem; }
+
+/* Control Panel */
+.control-section {
+  margin-bottom: 1.5rem;
+}
+
+.control-label {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  color: var(--text);
+}
+
+.control-input {
+  width: 100%;
+  padding: 0.625rem;
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  color: var(--text);
+  font-size: 0.875rem;
+  transition: border-color 0.2s;
+}
+
+.control-input:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.control-input:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.slider-container {
+  margin-top: 0.5rem;
+}
+
+.slider {
+  width: 100%;
+  height: 6px;
+  border-radius: 3px;
+  background: var(--line);
+  outline: none;
+  -webkit-appearance: none;
+}
+
+.slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--accent);
+  cursor: pointer;
+}
+
+.slider::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--accent);
+  cursor: pointer;
+  border: none;
+}
+
+.slider-value {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.75rem;
+  color: var(--muted);
+  margin-top: 0.25rem;
+}
+
+/* Buttons */
+.btn {
+  padding: 0.625rem 1.25rem;
+  border: none;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  justify-content: center;
+}
+
+.btn-primary {
+  background: var(--accent);
+  color: white;
+}
+
+.btn-primary:hover {
+  background: var(--accent-bright);
+}
+
+.btn-success {
+  background: var(--green);
+  color: white;
+}
+
+.btn-danger {
+  background: var(--red);
+  color: white;
+}
+
+.btn-outline {
+  background: transparent;
+  border: 1px solid var(--line);
+  color: var(--text);
+}
+
+.btn-outline:hover {
+  background: var(--card);
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-group {
+  display: flex;
+  gap: 0.5rem;
+}
+
+/* Tabs */
+.tabs {
+  margin-bottom: 1rem;
+}
+
+.tabs-list {
+  display: flex;
+  border-bottom: 2px solid var(--line);
+  gap: 0.5rem;
+}
+
+.tab-trigger {
+  padding: 0.75rem 1.5rem;
+  background: transparent;
+  border: none;
+  color: var(--muted);
+  font-weight: 600;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -2px;
+  transition: all 0.2s;
+}
+
+.tab-trigger.active {
+  color: var(--accent-bright);
+  border-bottom-color: var(--accent-bright);
+}
+
+.tab-content {
+  padding-top: 1rem;
+}
+
+/* Badges */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.badge-success { background: rgba(16, 185, 129, 0.2); color: var(--green); }
+.badge-warning { background: rgba(245, 158, 11, 0.2); color: var(--yellow); }
+.badge-danger { background: rgba(239, 68, 68, 0.2); color: var(--red); }
+.badge-info { background: rgba(59, 130, 246, 0.2); color: var(--accent-bright); }
+
+/* Alert */
+.alert {
+  padding: 1rem;
+  border-radius: 8px;
+  background: rgba(59, 130, 246, 0.1);
+  border: 1px solid rgba(59, 130, 246, 0.3);
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+/* Stats Display */
+.stat-box {
+  text-align: center;
+  padding: 1rem;
+}
+
+.stat-value {
+  font-size: 2rem;
+  font-weight: 800;
+  background: var(--gradient-3);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.stat-label {
+  font-size: 0.75rem;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-top: 0.25rem;
+}
+
+/* Canvas */
+.visualization-canvas {
+  width: 100%;
+  border-radius: 8px;
+  background: var(--bg);
+  display: block;
+}
+
+/* Progress Bar */
+.progress-bar {
+  height: 8px;
+  background: var(--line);
+  border-radius: 4px;
+  overflow: hidden;
+  margin: 1rem 0;
+}
+
+.progress-fill {
+  height: 100%;
+  background: var(--gradient-3);
+  transition: width 0.3s;
+}
+
+/* Heatmap Container */
+.heatmap-container {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1;
+  background: var(--bg);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+/* Responsive */
+@media (max-width: 1400px) {
+  .grid-cols-4 { grid-template-columns: repeat(2, 1fr); }
+  .grid-cols-3 { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 768px) {
+  .grid-cols-2 { grid-template-columns: 1fr; }
+  .app-container { padding: 0 1rem; }
+}
+
+/* Utility Classes */
+.w-full { width: 100%; }
+.flex { display: flex; }
+.items-center { align-items: center; }
+.justify-between { justify-content: space-between; }
+.gap-2 { gap: 0.5rem; }
+.gap-4 { gap: 1rem; }
+.mb-4 { margin-bottom: 1rem; }
+.mt-4 { margin-top: 1rem; }
+.text-center { text-align: center; }
+</style>
+</head>
+<body>
+
+<header class="app-header">
+  <div class="header-content">
+    <div class="brand">
+      <div class="brand-icon">🧬</div>
+      <div class="brand-text">
+        <h1>NextGen CellDynamics</h1>
+        <p>Advanced Computational Biology Platform • v2.0</p>
+      </div>
+    </div>
+    <div class="status-bar">
+      <div class="status-indicator">
+        <div class="status-dot active"></div>
+        <span>System Ready</span>
+      </div>
+    </div>
+  </div>
+</header>
+
+<div class="app-container">
+  <div id="root"></div>
+</div>
+
+<script type="text/babel">
+const { useState, useEffect, useRef, useMemo, useCallback } = React;
+const { LineChart, Line, AreaChart, Area, BarChart, Bar, ScatterChart, Scatter,
+        XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } = Recharts;
+
+// ============================================================================
+// CONFIGURATION
+// ============================================================================
+
+// Auto-detect API endpoint based on environment
+const getApiBase = () => {
+  // If running locally (file:// or localhost), use local backend
+  if (window.location.hostname === 'localhost' || 
+      window.location.hostname === '127.0.0.1' ||
+      window.location.protocol === 'file:') {
+    return 'http://127.0.0.1:5000/api';
+  }
+  
+  // If deployed on Render or production, use same-origin or env var
+  // Check if API_URL is set (Render environment variable)
+  if (window.REACT_APP_API_URL) {
+    return window.REACT_APP_API_URL + '/api';
+  }
+  
+  // For Render deployment, use the render.com URL
+  if (window.location.hostname.includes('onrender.com')) {
+    // Replace 'frontend' with 'api' in the hostname
+    const apiHost = window.location.hostname.replace('frontend', 'api');
+    return `https://${apiHost}/api`;
+  }
+  
+  // Default: assume API is at same origin
+  return '/api';
+};
+
+const API_BASE = getApiBase();
+
+console.log(`🔧 API Endpoint: ${API_BASE}`);
+
+const CELL_LINES = ['HeLa', 'MCF-7', 'A549', 'HEK293', 'Jurkat'];
+
+const DRUG_CLASSES = [
+  { value: 'taxol', label: 'Taxol (Microtubule Inhibitor)' },
+  { value: 'cisplatin', label: 'Cisplatin (DNA Crosslinker)' },
+  { value: 'doxorubicin', label: 'Doxorubicin (Topoisomerase II Inhibitor)' },
+  { value: 'gemcitabine', label: 'Gemcitabine (Antimetabolite)' },
+  { value: 'targeted', label: 'Targeted Therapy' }
+];
+
+// ============================================================================
+// MAIN APPLICATION COMPONENT
+// ============================================================================
+
+const NextGenCellDynamics = () => {
+  // Core state
+  const [cellLine, setCellLine] = useState('HeLa');
+  const [cellLineData, setCellLineData] = useState(null);
+  const [isSimulating, setIsSimulating] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const [simulationData, setSimulationData] = useState([]);
+  
+  // Environmental parameters
+  const [temperature, setTemperature] = useState(37);
+  const [pH, setpH] = useState(7.4);
+  
+  // Treatment parameters
+  const [treatmentType, setTreatmentType] = useState('none');
+  const [drugClass, setDrugClass] = useState('taxol');
+  const [concentration, setConcentration] = useState(0);
+  
+  // Experiment parameters
+  const [initialCells, setInitialCells] = useState(500);
+  const [duration, setDuration] = useState(72);
+  const [timeInterval, setTimeInterval] = useState(0.5);
+  
+  // ML Predictions
+  const [prediction, setPrediction] = useState(null);
+  
+  // Active tab
+  const [activeTab, setActiveTab] = useState('growth');
+  
+  // Canvas refs
+  const canvasRef = useRef(null);
+  const heatmapRef = useRef(null);
+  
+  // Load cell line data
+  useEffect(() => {
+    fetch(`${API_BASE}/cell-lines`)
+      .then(res => res.json())
+      .then(data => setCellLineData(data))
+      .catch(err => console.error('Failed to load cell lines:', err));
+  }, []);
+  
+  // Run simulation
+  const runSimulation = async () => {
+    setIsSimulating(true);
+    setProgress(0);
+    setSimulationData([]);
+    
+    const params = {
+      cellLineName: cellLine,
+      environment: { temperature, pH },
+      treatment: {
+        type: treatmentType,
+        drugClass: drugClass,
+        concentration: treatmentType === 'drug' ? concentration : 0
+      },
+      experimentParams: {
+        initialCells,
+        duration,
+        timeInterval
+      },
+      cultureSize: 1000
+    };
+    
+    try {
+      // Simulate progress
+      const progressInterval = setInterval(() => {
+        setProgress(prev => Math.min(prev + 10, 90));
+      }, 500);
+      
+      const response = await fetch(`${API_BASE}/simulate`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(params)
+      });
+      
+      clearInterval(progressInterval);
+      
+      if (!response.ok) throw new Error('Simulation failed');
+      
+      const result = await response.json();
+      setSimulationData(result.data);
+      setProgress(100);
+      
+    } catch (error) {
+      console.error('Simulation error:', error);
+      alert('Simulation failed: ' + error.message);
+    } finally {
+      setIsSimulating(false);
+      setTimeout(() => setProgress(0), 2000);
+    }
+  };
+  
+  // Get ML prediction
+  const getPrediction = async () => {
+    if (treatmentType !== 'drug') return;
+    
+    try {
+      const response = await fetch(`${API_BASE}/predict/optimal-dose`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ cellLineName: cellLine, drugClass })
+      });
+      
+      const result = await response.json();
+      setPrediction(result);
+    } catch (error) {
+      console.error('Prediction error:', error);
+    }
+  };
+  
+  useEffect(() => {
+    if (treatmentType === 'drug') {
+      getPrediction();
+    }
+  }, [cellLine, drugClass, treatmentType]);
+  
+  // Calculate statistics
+  const statistics = useMemo(() => {
+    if (!simulationData.length) return null;
+    
+    const latest = simulationData[simulationData.length - 1];
+    const initial = simulationData[0];
+    
+    const growthRate = ((latest.viable - initial.viable) / initial.viable * 100).toFixed(1);
+    const doublingTime = duration / (Math.log2(latest.viable / initial.viable));
+    
+    return {
+      finalViable: latest.viable,
+      finalTotal: latest.total,
+      viability: latest.viability.toFixed(1),
+      growthRate: growthRate,
+      doublingTime: doublingTime.toFixed(1),
+      avgHealth: (latest.avg_health * 100).toFixed(1),
+      avgATP: (latest.avg_atp * 100).toFixed(1)
+    };
+  }, [simulationData, duration]);
+  
+  // Render visualization
+  useEffect(() => {
+    if (!simulationData.length || !canvasRef.current) return;
+    
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext('2d');
+    const latest = simulationData[simulationData.length - 1];
+    
+    // Clear
+    ctx.fillStyle = '#0a0e1a';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    
+    // Draw grid
+    ctx.strokeStyle = '#1e293b';
+    ctx.lineWidth = 1;
+    for (let i = 0; i < canvas.width; i += 50) {
+      ctx.beginPath();
+      ctx.moveTo(i, 0);
+      ctx.lineTo(i, canvas.height);
+      ctx.stroke();
+    }
+    for (let i = 0; i < canvas.height; i += 50) {
+      ctx.beginPath();
+      ctx.moveTo(0, i);
+      ctx.lineTo(canvas.width, i);
+      ctx.stroke();
+    }
+    
+    // Draw cells (simplified visualization)
+    const cellCount = Math.min(latest.viable, 500); // Cap for performance
+    for (let i = 0; i < cellCount; i++) {
+      const x = Math.random() * canvas.width;
+      const y = Math.random() * canvas.height;
+      const radius = 3 + Math.random() * 2;
+      
+      ctx.beginPath();
+      ctx.arc(x, y, radius, 0, Math.PI * 2);
+      
+      // Color by health
+      const health = latest.avg_health;
+      const hue = health * 120; // 0=red, 120=green
+      ctx.fillStyle = `hsl(${hue}, 70%, 50%)`;
+      ctx.fill();
+      
+      ctx.strokeStyle = '#333';
+      ctx.lineWidth = 0.5;
+      ctx.stroke();
+    }
+    
+    // Info overlay
+    ctx.fillStyle = '#e5e7eb';
+    ctx.font = 'bold 14px -apple-system, BlinkMacSystemFont, sans-serif';
+    ctx.fillText(`Viable Cells: ${latest.viable}`, 20, 30);
+    ctx.fillText(`Viability: ${latest.viability.toFixed(1)}%`, 20, 50);
+    ctx.fillText(`Time: ${latest.time}h`, 20, 70);
+    
+  }, [simulationData]);
+  
+  // Render heatmap
+  useEffect(() => {
+    if (!simulationData.length || !heatmapRef.current) return;
+    
+    const canvas = heatmapRef.current;
+    const ctx = canvas.getContext('2d');
+    const size = 100;
+    const cellSize = canvas.width / size;
+    
+    // Generate heatmap data (simplified - showing lactate accumulation)
+    const latest = simulationData[simulationData.length - 1];
+    
+    for (let x = 0; x < size; x++) {
+      for (let y = 0; y < size; y++) {
+        // Simulate gradient (higher in center where cells are dense)
+        const dx = (x - size/2) / size;
+        const dy = (y - size/2) / size;
+        const dist = Math.sqrt(dx*dx + dy*dy);
+        const value = Math.max(0, 1 - dist * 2) * latest.lactate;
+        
+        const hue = 240 - value * 240; // Blue to Red
+        ctx.fillStyle = `hsla(${hue}, 70%, 50%, 0.8)`;
+        ctx.fillRect(x * cellSize, y * cellSize, cellSize, cellSize);
+      }
+    }
+    
+  }, [simulationData]);
+  
+  const currentCellLineInfo = cellLineData ? cellLineData[cellLine] : null;
+  
+  return (
+    <div>
+      {/* Control Panel */}
+      <div className="grid grid-cols-4 gap-6 mb-4">
+        
+        {/* Cell Line Selection */}
+        <div className="card">
+          <div className="card-header">
+            <h3 className="card-title">🧬 Cell Line</h3>
+          </div>
+          <div className="card-content">
+            <div className="control-section">
+              <label className="control-label">Select Cell Line</label>
+              <select 
+                className="control-input"
+                value={cellLine}
+                onChange={e => setCellLine(e.target.value)}
+                disabled={isSimulating}
+              >
+                {CELL_LINES.map(line => (
+                  <option key={line} value={line}>{line}</option>
+                ))}
+              </select>
+            </div>
+            
+            {currentCellLineInfo && (
+              <div className="alert mt-4">
+                <div><strong>Type:</strong> {currentCellLineInfo.type}</div>
+                <div><strong>Origin:</strong> {currentCellLineInfo.origin}</div>
+                <div><strong>Doubling Time:</strong> {currentCellLineInfo.doubling_time}h</div>
+                <div><strong>Adherent:</strong> {currentCellLineInfo.adherent ? 'Yes' : 'No'}</div>
+              </div>
+            )}
+          </div>
+        </div>
+        
+        {/* Environment */}
+        <div className="card">
+          <div className="card-header">
+            <h3 className="card-title">🌡️ Environment</h3>
+          </div>
+          <div className="card-content">
+            <div className="control-section">
+              <label className="control-label">Temperature (°C)</label>
+              <input
+                type="range"
+                className="slider"
+                min="30"
+                max="42"
+                step="0.5"
+                value={temperature}
+                onChange={e => setTemperature(parseFloat(e.target.value))}
+                disabled={isSimulating}
+              />
+              <div className="slider-value">
+                <span>30°C</span>
+                <strong>{temperature}°C</strong>
+                <span>42°C</span>
+              </div>
+            </div>
+            
+            <div className="control-section mt-4">
+              <label className="control-label">pH</label>
+              <input
+                type="range"
+                className="slider"
+                min="6.5"
+                max="8.0"
+                step="0.1"
+                value={pH}
+                onChange={e => setpH(parseFloat(e.target.value))}
+                disabled={isSimulating}
+              />
+              <div className="slider-value">
+                <span>6.5</span>
+                <strong>{pH}</strong>
+                <span>8.0</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        {/* Treatment */}
+        <div className="card">
+          <div className="card-header">
+            <h3 className="card-title">💊 Treatment</h3>
+          </div>
+          <div className="card-content">
+            <div className="control-section">
+              <label className="control-label">Treatment Type</label>
+              <select 
+                className="control-input"
+                value={treatmentType}
+                onChange={e => setTreatmentType(e.target.value)}
+                disabled={isSimulating}
+              >
+                <option value="none">No Treatment</option>
+                <option value="drug">Drug Treatment</option>
+              </select>
+            </div>
+            
+            {treatmentType === 'drug' && (
+              <>
+                <div className="control-section mt-4">
+                  <label className="control-label">Drug Class</label>
+                  <select 
+                    className="control-input"
+                    value={drugClass}
+                    onChange={e => setDrugClass(e.target.value)}
+                    disabled={isSimulating}
+                  >
+                    {DRUG_CLASSES.map(drug => (
+                      <option key={drug.value} value={drug.value}>{drug.label}</option>
+                    ))}
+                  </select>
+                </div>
+                
+                <div className="control-section mt-4">
+                  <label className="control-label">Concentration (μM)</label>
+                  <input
+                    type="range"
+                    className="slider"
+                    min="0"
+                    max="100"
+                    step="1"
+                    value={concentration}
+                    onChange={e => setConcentration(parseFloat(e.target.value))}
+                    disabled={isSimulating}
+                  />
+                  <div className="slider-value">
+                    <span>0 μM</span>
+                    <strong>{concentration} μM</strong>
+                    <span>100 μM</span>
+                  </div>
+                </div>
+                
+                {prediction && (
+                  <div className="alert mt-4">
+                    <div><strong>IC₅₀:</strong> {prediction.ic50.toFixed(1)} μM</div>
+                    <div><strong>Recommended:</strong> {prediction.optimal_dose.toFixed(1)} μM</div>
+                  </div>
+                )}
+              </>
+            )}
+          </div>
+        </div>
+        
+        {/* Experiment Setup */}
+        <div className="card">
+          <div className="card-header">
+            <h3 className="card-title">⚙️ Experiment</h3>
+          </div>
+          <div className="card-content">
+            <div className="control-section">
+              <label className="control-label">Initial Cells</label>
+              <input
+                type="range"
+                className="slider"
+                min="100"
+                max="1000"
+                step="50"
+                value={initialCells}
+                onChange={e => setInitialCells(parseInt(e.target.value))}
+                disabled={isSimulating}
+              />
+              <div className="slider-value">
+                <span>100</span>
+                <strong>{initialCells}</strong>
+                <span>1000</span>
+              </div>
+            </div>
+            
+            <div className="control-section mt-4">
+              <label className="control-label">Duration (hours)</label>
+              <input
+                type="range"
+                className="slider"
+                min="24"
+                max="168"
+                step="12"
+                value={duration}
+                onChange={e => setDuration(parseInt(e.target.value))}
+                disabled={isSimulating}
+              />
+              <div className="slider-value">
+                <span>24h</span>
+                <strong>{duration}h</strong>
+                <span>168h</span>
+              </div>
+            </div>
+            
+            <div className="btn-group mt-4 w-full">
+              <button 
+                className="btn btn-primary w-full"
+                onClick={runSimulation}
+                disabled={isSimulating}
+              >
+                {isSimulating ? '⚡ Running...' : '▶️ Run Simulation'}
+              </button>
+            </div>
+            
+            {progress > 0 && (
+              <div className="progress-bar">
+                <div className="progress-fill" style={{width: `${progress}%`}}></div>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+      
+      {/* Statistics Dashboard */}
+      {statistics && (
+        <div className="grid grid-cols-4 gap-4 mb-4">
+          <div className="card">
+            <div className="card-content stat-box">
+              <div className="stat-value">{statistics.finalViable}</div>
+              <div className="stat-label">Viable Cells</div>
+            </div>
+          </div>
+          <div className="card">
+            <div className="card-content stat-box">
+              <div className="stat-value">{statistics.viability}%</div>
+              <div className="stat-label">Viability</div>
+            </div>
+          </div>
+          <div className="card">
+            <div className="card-content stat-box">
+              <div className="stat-value">{statistics.doublingTime}h</div>
+              <div className="stat-label">Doubling Time</div>
+            </div>
+          </div>
+          <div className="card">
+            <div className="card-content stat-box">
+              <div className="stat-value">{statistics.avgHealth}%</div>
+              <div className="stat-label">Avg Health</div>
+            </div>
+          </div>
+        </div>
+      )}
+      
+      {/* Main Visualization Area */}
+      <div className="grid grid-cols-3 gap-6">
+        
+        {/* Cell Culture View */}
+        <div className="card">
+          <div className="card-header">
+            <h3 className="card-title">🔬 Cell Culture View</h3>
+            <p className="card-description">Real-time cell population visualization</p>
+          </div>
+          <div className="card-content">
+            <canvas
+              ref={canvasRef}
+              width={600}
+              height={600}
+              className="visualization-canvas"
+              style={{width: '100%', height: 'auto'}}
+            />
+          </div>
+        </div>
+        
+        {/* Charts */}
+        <div className="card" style={{gridColumn: 'span 2'}}>
+          <div className="card-header">
+            <div className="tabs">
+              <div className="tabs-list">
+                <button 
+                  className={`tab-trigger ${activeTab === 'growth' ? 'active' : ''}`}
+                  onClick={() => setActiveTab('growth')}
+                >
+                  Growth Dynamics
+                </button>
+                <button 
+                  className={`tab-trigger ${activeTab === 'viability' ? 'active' : ''}`}
+                  onClick={() => setActiveTab('viability')}
+                >
+                  Viability
+                </button>
+                <button 
+                  className={`tab-trigger ${activeTab === 'metabolism' ? 'active' : ''}`}
+                  onClick={() => setActiveTab('metabolism')}
+                >
+                  Metabolism
+                </button>
+                <button 
+                  className={`tab-trigger ${activeTab === 'phases' ? 'active' : ''}`}
+                  onClick={() => setActiveTab('phases')}
+                >
+                  Cell Cycle
+                </button>
+              </div>
+            </div>
+          </div>
+          <div className="card-content">
+            {activeTab === 'growth' && (
+              <ResponsiveContainer width="100%" height={500}>
+                <LineChart data={simulationData}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
+                  <XAxis 
+                    dataKey="time" 
+                    stroke="#9ca3af"
+                    label={{ value: 'Time (hours)', position: 'insideBottom', offset: -5, fill: '#9ca3af' }}
+                  />
+                  <YAxis 
+                    stroke="#9ca3af"
+                    label={{ value: 'Cell Count', angle: -90, position: 'insideLeft', fill: '#9ca3af' }}
+                  />
+                  <Tooltip 
+                    contentStyle={{ backgroundColor: '#1a1f2e', border: 'none', borderRadius: '8px' }}
+                  />
+                  <Legend />
+                  <Line type="monotone" dataKey="total" stroke="#3b82f6" strokeWidth={2} dot={false} name="Total" />
+                  <Line type="monotone" dataKey="viable" stroke="#10b981" strokeWidth={2} dot={false} name="Viable" />
+                </LineChart>
+              </ResponsiveContainer>
+            )}
+            
+            {activeTab === 'viability' && (
+              <ResponsiveContainer width="100%" height={500}>
+                <AreaChart data={simulationData}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
+                  <XAxis dataKey="time" stroke="#9ca3af" />
+                  <YAxis stroke="#9ca3af" domain={[0, 100]} />
+                  <Tooltip 
+                    contentStyle={{ backgroundColor: '#1a1f2e', border: 'none', borderRadius: '8px' }}
+                  />
+                  <Area 
+                    type="monotone" 
+                    dataKey="viability" 
+                    stroke="#10b981" 
+                    fill="#10b981"
+                    fillOpacity={0.3}
+                    name="Viability %"
+                  />
+                </AreaChart>
+              </ResponsiveContainer>
+            )}
+            
+            {activeTab === 'metabolism' && (
+              <ResponsiveContainer width="100%" height={500}>
+                <LineChart data={simulationData}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
+                  <XAxis dataKey="time" stroke="#9ca3af" />
+                  <YAxis stroke="#9ca3af" domain={[0, 1]} />
+                  <Tooltip 
+                    contentStyle={{ backgroundColor: '#1a1f2e', border: 'none', borderRadius: '8px' }}
+                  />
+                  <Legend />
+                  <Line type="monotone" dataKey="glucose" stroke="#f59e0b" strokeWidth={2} dot={false} name="Glucose" />
+                  <Line type="monotone" dataKey="oxygen" stroke="#3b82f6" strokeWidth={2} dot={false} name="Oxygen" />
+                  <Line type="monotone" dataKey="lactate" stroke="#ef4444" strokeWidth={2} dot={false} name="Lactate" />
+                </LineChart>
+              </ResponsiveContainer>
+            )}
+            
+            {activeTab === 'phases' && simulationData.length > 0 && (
+              <ResponsiveContainer width="100%" height={500}>
+                <BarChart data={simulationData.map(d => ({
+                  time: d.time,
+                  G1: d.phases.G1,
+                  S: d.phases.S,
+                  G2: d.phases.G2,
+                  M: d.phases.M,
+                  G0: d.phases.G0
+                }))}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
+                  <XAxis dataKey="time" stroke="#9ca3af" />
+                  <YAxis stroke="#9ca3af" />
+                  <Tooltip 
+                    contentStyle={{ backgroundColor: '#1a1f2e', border: 'none', borderRadius: '8px' }}
+                  />
+                  <Legend />
+                  <Bar dataKey="G1" stackId="a" fill="#3b82f6" />
+                  <Bar dataKey="S" stackId="a" fill="#10b981" />
+                  <Bar dataKey="G2" stackId="a" fill="#f59e0b" />
+                  <Bar dataKey="M" stackId="a" fill="#8b5cf6" />
+                  <Bar dataKey="G0" stackId="a" fill="#6b7280" />
+                </BarChart>
+              </ResponsiveContainer>
+            )}
+          </div>
+        </div>
+      </div>
+      
+      {/* Heatmap Row */}
+      {simulationData.length > 0 && (
+        <div className="card mt-6">
+          <div className="card-header">
+            <h3 className="card-title">🗺️ Spatial Microenvironment</h3>
+            <p className="card-description">Lactate accumulation heatmap</p>
+          </div>
+          <div className="card-content">
+            <div className="heatmap-container">
+              <canvas
+                ref={heatmapRef}
+                width={600}
+                height={600}
+                className="visualization-canvas"
+              />
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+// Render app
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(<NextGenCellDynamics />);
+</script>
+
+</body>
+</html>
